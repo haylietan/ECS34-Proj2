@@ -1,18 +1,16 @@
 #include "XMLWriter.h"
 #include <sstream>
 
-// Constructor: initializes the XML writer
 CXMLWriter::CXMLWriter(std::shared_ptr<CDataSink> sink)
     : Sink(std::move(sink)) {}
 
-// Destructor
 CXMLWriter::~CXMLWriter() = default;
 
-// Writes an XML entity to the sink
 bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
     if (!Sink) return false;
 
     std::ostringstream output;
+    std::ostringstream attrstr;
 
     if (entity.DType == SXMLEntity::EType::StartElement) {
         output << "<" << entity.DNameData;
@@ -22,30 +20,34 @@ bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
             for (char c : attr.second) {
                 if (c == '&') {
                     output << "&amp;";
+                    attrstr << "&amp;";
                 }
                 else if (c == '<') {
                     output << "&lt;";
+                    attrstr << "&lt;";
                 }
                 else if (c == '>') {
                     output << "&gt;";
+                    attrstr << "&gt;";
                 }
                 else if (c == '\"') {
                     output << "&quot;";
+                    attrstr << "&quot;";
                 }
                 else if (c == '\'') {
                     output << "&apos;";
+                    attrstr << "&apos;";
                 }
-                else {
-                    output << c;
-                }
+                else output << c; 
             }
             output << "\"";
         }
 
         if (entity.DAttributes.empty()) {
-            output << "/>";
+            output << "/>"; 
         } else {
             output << ">";
+            output << attrstr.str();
         }
     } 
     else if (entity.DType == SXMLEntity::EType::EndElement) {
@@ -60,9 +62,5 @@ bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
 
 // Flushes remaining data (not needed for simple cases)
 bool CXMLWriter::Flush() {
-    if(!Sink) {
-        return false;
-    }
-
     return true;
 }
