@@ -10,7 +10,6 @@ bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
     if (!Sink) return false;
 
     std::ostringstream output;
-    std::ostringstream attrstr;
 
     if (entity.DType == SXMLEntity::EType::StartElement) {
         output << "<" << entity.DNameData;
@@ -20,35 +19,24 @@ bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
             for (char c : attr.second) {
                 if (c == '&') {
                     output << "&amp;";
-                    attrstr << "&amp;";
                 }
                 else if (c == '<') {
                     output << "&lt;";
-                    attrstr << "&lt;";
                 }
                 else if (c == '>') {
                     output << "&gt;";
-                    attrstr << "&gt;";
                 }
                 else if (c == '\"') {
                     output << "&quot;";
-                    attrstr << "&quot;";
                 }
                 else if (c == '\'') {
                     output << "&apos;";
-                    attrstr << "&apos;";
                 }
                 else output << c; 
             }
             output << "\"";
         }
-
-        if (entity.DAttributes.empty()) {
-            output << "/>"; 
-        } else {
-            output << ">";
-            output << attrstr.str();
-        }
+        output << ">";
     } 
     else if (entity.DType == SXMLEntity::EType::EndElement) {
         output << "</" << entity.DNameData << ">";
