@@ -14,31 +14,30 @@ bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
         output << "<" << entity.DNameData;
         for (const auto &attr : entity.DAttributes) {
             output << " " << attr.first << "=\"";
-            std::ostringstream escaped;
             for (char c : attr.second) {
                 if (c == '&') {
-                    escaped << "&amp;";
+                    output << "&amp;";
                 }
                 else if (c == '<') {
-                    escaped << "&lt;";
+                    output << "&lt;";
                 }
                 else if (c == '>') {
-                    escaped << "&gt;";
+                    output << "&gt;";
                 }
                 else if (c == '\"') {
-                    escaped << "&quot;";
+                    output << "&quot;";
                 }
                 else if (c == '\'') {
-                    escaped << "&apos;";
+                    output << "&apos;";
                 }
                 else {
-                    escaped << c;
+                    output << c;
                 }
             }
-            output << escaped.str() << "\"";
+            output << "\"";
         }
-        // Self-close the tag if there are no child elements
-        if (entity.DAttributes.empty()) {
+        // Self-close the tag if it is a self-closing element
+        if (entity.DType == SXMLEntity::EType::CompleteElement) {
             output << "/>";
         } else {
             output << ">";
@@ -46,6 +45,34 @@ bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
     }
     else if (entity.DType == SXMLEntity::EType::EndElement) {
         output << "</" << entity.DNameData << ">";
+    }
+    else if (entity.DType == SXMLEntity::EType::CompleteElement) {
+        output << "<" << entity.DNameData;
+        for (const auto &attr : entity.DAttributes) {
+            output << " " << attr.first << "=\"";
+            for (char c : attr.second) {
+                if (c == '&') {
+                    output << "&amp;";
+                }
+                else if (c == '<') {
+                    output << "&lt;";
+                }
+                else if (c == '>') {
+                    output << "&gt;";
+                }
+                else if (c == '\"') {
+                    output << "&quot;";
+                }
+                else if (c == '\'') {
+                    output << "&apos;";
+                }
+                else {
+                    output << c;
+                }
+            }
+            output << "\"";
+        }
+        output << "/>";
     }
 
     std::string outputStr = output.str();
