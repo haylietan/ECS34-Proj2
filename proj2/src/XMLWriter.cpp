@@ -9,7 +9,6 @@ CXMLWriter::~CXMLWriter() = default;
 bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
     if (!Sink) return false;
     std::ostringstream output;
-    std::ostringstream attrstr;  // To hold inner text for complete elements
 
     if (entity.DType == SXMLEntity::EType::StartElement) {
         output << "<" << entity.DNameData;
@@ -36,17 +35,13 @@ bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
                     escaped << c;
                 }
             }
-            std::string escapedVal = escaped.str();
-            output << escapedVal << "\"";
-            // Append inner text only if escaping changed the attribute value.
-            if (escapedVal != attr.second)
-                attrstr << escapedVal;
+            output << escaped.str() << "\"";
         }
-        // If there are no attributes, self-close; otherwise, output inner text.
+        // Self-close the tag if there are no child elements
         if (entity.DAttributes.empty()) {
             output << "/>";
         } else {
-            output << ">" << attrstr.str();
+            output << ">";
         }
     }
     else if (entity.DType == SXMLEntity::EType::EndElement) {
