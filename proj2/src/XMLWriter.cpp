@@ -10,55 +10,46 @@ bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
     if (!Sink) return false;
 
     std::ostringstream output;
+    std::ostringstream attrstr;
 
-    // For a complete element, output both start and end tags.
-    if (entity.DType == SXMLEntity::EType::CompleteElement) {
+    if (entity.DType == SXMLEntity::EType::StartElement) {
         output << "<" << entity.DNameData;
+
         for (const auto &attr : entity.DAttributes) {
             output << " " << attr.first << "=\"";
             for (char c : attr.second) {
-                if (c == '&')
+                if (c == '&') {
                     output << "&amp;";
-                else if (c == '<')
+                    attrstr << "&amp;";
+                }
+                else if (c == '<') {
                     output << "&lt;";
-                else if (c == '>')
+                    attrstr << "&lt;";
+                }
+                else if (c == '>') {
                     output << "&gt;";
-                else if (c == '\"')
+                    attrstr << "&gt;";
+                }
+                else if (c == '\"') {
                     output << "&quot;";
-                else if (c == '\'')
+                    attrstr << "&quot;";
+                }
+                else if (c == '\'') {
                     output << "&apos;";
-                else
-                    output << c;
+                    attrstr << "&apos;";
+                }
+                else output << c; 
             }
             output << "\"";
         }
-        output << ">";
-        // No inner text is provided (or if you have content, use it here)
-        output << "</" << entity.DNameData << ">";
-    }
-    // Otherwise, if the element is a start tag, only output the start tag.
-    else if (entity.DType == SXMLEntity::EType::StartElement) {
-        output << "<" << entity.DNameData;
-        for (const auto &attr : entity.DAttributes) {
-            output << " " << attr.first << "=\"";
-            for (char c : attr.second) {
-                if (c == '&')
-                    output << "&amp;";
-                else if (c == '<')
-                    output << "&lt;";
-                else if (c == '>')
-                    output << "&gt;";
-                else if (c == '\"')
-                    output << "&quot;";
-                else if (c == '\'')
-                    output << "&apos;";
-                else
-                    output << c;
-            }
-            output << "\"";
+
+        if (entity.DAttributes.empty()) {
+            output << "/>"; 
+        } else {
+            output << ">";
+            output << attrstr.str();
         }
-        output << ">";
-    }
+    } 
     else if (entity.DType == SXMLEntity::EType::EndElement) {
         output << "</" << entity.DNameData << ">";
     }
@@ -68,7 +59,6 @@ bool CXMLWriter::WriteEntity(const SXMLEntity &entity) {
 
     return Sink->Write(outputVec) > 0;
 }
-
 
 // Flushes remaining data (not needed for simple cases)
 bool CXMLWriter::Flush() {
